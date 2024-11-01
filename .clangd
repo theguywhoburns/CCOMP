@@ -1,0 +1,11 @@
+CompileFlags:
+  Add: [
+    -fmacro-backtrace-limit=1
+  ]
+  CompilationDatabase: build
+  
+Diagnostics:
+  UnusedIncludes: true
+
+InlayHints:
+  Enabled: true

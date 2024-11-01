@@ -1,0 +1,87 @@
+cmake_minimum_required(VERSION 3.22)
+set(PROJECT_NAME LANG)
+set(${PROJECT_NAME}_VERSION_MAJOR 0)
+set(${PROJECT_NAME}_VERSION_MINOR 0)
+set(${PROJECT_NAME}_VERSION_PATCH 1)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+project(
+    ${PROJECT_NAME}
+    VERSION ${LANG_VERSION_MAJOR}.${LANG_VERSION_MINOR}.${LANG_VERSION_PATCH}
+    LANGUAGES C
+)
+
+include(FetchContent)
+
+FetchContent_Declare(
+    datatype99
+    URL https://github.com/hirrolot/datatype99/archive/refs/tags/v1.6.4.tar.gz # v1.6.4
+)
+
+FetchContent_MakeAvailable(datatype99)
+
+file(GLOB_RECURSE ${PROJECT_NAME}_SOURCES CONFIGURE_DEPENDS "src/*.c")
+add_executable(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
+target_include_directories(${PROJECT_NAME} PUBLIC include src)
+set_target_properties(${PROJECT_NAME} PROPERTIES C_STANDARD 17)
+set_target_properties(${PROJECT_NAME} PROPERTIES C_STANDARD_REQUIRED ON)
+add_compile_options(-w)
+target_link_libraries(${PROJECT_NAME} datatype99)
+if(NOT (CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL "GNU"))
+    message(FATAL_ERROR "Unsupported compiler: ${CMAKE_C_COMPILER_ID}")
+endif()
+if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set(${PROJECT_NAME}_COMPILER "CLANG")
+    add_compile_options(-fmacro-backtrace-limit=1)
+elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    set(${PROJECT_NAME}_COMPILER "GCC") 
+    add_compile_options(-ftrack-macro-expansion=0)
+endif()
+
+# arch detection
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+    set(${PROJECT_NAME}_ARCH "X86_64")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "amd64")
+    set(${PROJECT_NAME}_ARCH "X86_64")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "i386")
+    set(${PROJECT_NAME}_ARCH "I386")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "i686")
+    set(${PROJECT_NAME}_ARCH "I686")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
+    set(${PROJECT_NAME}_ARCH "ARM")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+    set(${PROJECT_NAME}_ARCH "ARM")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "ppc64le")
+    set(${PROJECT_NAME}_ARCH "POWERPC")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "ppc64")
+    set(${PROJECT_NAME}_ARCH "POWERPC")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "s390x")
+    set(${PROJECT_NAME}_ARCH "S390X")
+else()
+    message(FATAL_ERROR "Unsupported architecture")
+endif()
+
+if(CMAKE_SYSTEM_NAME MATCHES "Windows")
+    set(${PROJECT_NAME}_PLATFORM "WINDOWS")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+    set(${PROJECT_NAME}_PLATFORM "LINUX")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+    set(${PROJECT_NAME}_PLATFORM "MACOS")
+elseif(CMAKE_SYSTEM_NAME MATCHES "Unix")
+    set(${PROJECT_NAME}_PLATFORM "LINUX")
+else()
+    message(FATAL_ERROR "Unsupported platform")
+endif()
+
+add_compile_definitions(
+        ${PROJECT_NAME}_COMPILER="${${PROJECT_NAME}_COMPILER}"
+        ${PROJECT_NAME}_PLATFORM="${${PROJECT_NAME}_PLATFORM}"
+        ${PROJECT_NAME}_ARCH="${${PROJECT_NAME}_ARCH}"
+        ${PROJECT_NAME}_COMPILER_${${PROJECT_NAME}_COMPILER}
+        ${PROJECT_NAME}_PLATFORM_${${PROJECT_NAME}_PLATFORM}
+        ${PROJECT_NAME}_ARCH_${${PROJECT_NAME}_ARCH}
+        ${PROJECT_NAME}_VERSION_MAJOR=${${PROJECT_NAME}_VERSION_MAJOR}
+        ${PROJECT_NAME}_VERSION_MINOR=${${PROJECT_NAME}_VERSION_MINOR}
+        ${PROJECT_NAME}_VERSION_PATCH=${${PROJECT_NAME}_VERSION_PATCH}
+        ${PROJECT_NAME}_VERSION_STR="${${PROJECT_NAME}_VERSION_MAJOR}.${${PROJECT_NAME}_VERSION_MINOR}.${${PROJECT_NAME}_VERSION_PATCH}"
+)
